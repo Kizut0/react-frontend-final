@@ -9,6 +9,7 @@ function toBookForm(book) {
     author: book.author ?? "",
     isbn: book.isbn ?? "",
     category: book.category ?? "",
+    location: book.location ?? "",
     publishedYear: book.publishedYear ?? "",
     totalCopies: String(book.totalCopies ?? 0),
     status: book.status ?? "AVAILABLE",
@@ -32,7 +33,7 @@ export default function BookDetail() {
     setError("");
     setNotice("");
 
-    const result = await apiRequest(`/api/book/${id}`);
+    const result = await apiRequest(`/api/books/${id}`);
 
     if (!result.ok) {
       setBook(null);
@@ -65,7 +66,7 @@ export default function BookDetail() {
     setError("");
     setNotice("");
 
-    const result = await apiRequest(`/api/book/${id}`, {
+    const result = await apiRequest(`/api/books/${id}`, {
       method: "PATCH",
       body: JSON.stringify({
         ...form,
@@ -96,7 +97,7 @@ export default function BookDetail() {
     setIsDeleting(true);
     setError("");
 
-    const result = await apiRequest(`/api/book/${id}`, {
+    const result = await apiRequest(`/api/books/${id}`, {
       method: "DELETE",
     });
 
@@ -142,12 +143,15 @@ export default function BookDetail() {
             <p className="eyebrow">Book detail</p>
             <h2>{book.title}</h2>
           </div>
-          <span className={`status-chip status-${book.status.toLowerCase()}`}>{book.status}</span>
+          <span className={`status-chip ${book.isDeleted ? "status-deleted" : `status-${book.status.toLowerCase()}`}`}>
+            {book.isDeleted ? "DELETED" : book.status}
+          </span>
         </div>
 
         <p className="lede">
           {book.author}
           {book.category ? ` • ${book.category}` : ""}
+          {book.location ? ` • ${book.location}` : ""}
           {book.publishedYear ? ` • ${book.publishedYear}` : ""}
         </p>
 
@@ -201,6 +205,10 @@ export default function BookDetail() {
             <label className="field">
               <span>Category</span>
               <input type="text" name="category" value={form.category} onChange={updateForm} />
+            </label>
+            <label className="field">
+              <span>Location</span>
+              <input type="text" name="location" value={form.location} onChange={updateForm} />
             </label>
             <label className="field">
               <span>Published Year</span>
@@ -258,15 +266,17 @@ export default function BookDetail() {
             <Link className="button secondary-button" to="/books">
               Back to catalog
             </Link>
-            {user.role !== "ADMIN" && book.availableCopies > 0 ? (
+            {user.role !== "ADMIN" && !book.isDeleted ? (
               <Link className="button" to={`/borrow?bookId=${book.id}`}>
-                Continue to borrow
+                Continue to request
               </Link>
             ) : (
               <span className="support-copy">
-                {book.availableCopies > 0
-                  ? "Only USER accounts can create borrow requests."
-                  : "This book has no copies available right now."}
+                {book.isDeleted
+                  ? "This book has been removed from the active catalog."
+                  : book.availableCopies > 0
+                    ? "Only USER accounts can create borrow requests."
+                    : "This book currently has no available copies. You can still open the request flow."}
               </span>
             )}
           </div>

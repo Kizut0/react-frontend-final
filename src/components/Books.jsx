@@ -8,6 +8,7 @@ const emptyBookForm = {
   author: "",
   isbn: "",
   category: "",
+  location: "",
   publishedYear: "",
   totalCopies: "1",
 };
@@ -24,7 +25,7 @@ async function requestBooks(searchValue = "", categoryValue = "") {
   }
 
   const query = params.toString();
-  return apiRequest(`/api/book${query ? `?${query}` : ""}`);
+  return apiRequest(`/api/books${query ? `?${query}` : ""}`);
 }
 
 export default function Books() {
@@ -116,7 +117,7 @@ export default function Books() {
     setError("");
     setNotice("");
 
-    const result = await apiRequest("/api/book", {
+    const result = await apiRequest("/api/books", {
       method: "POST",
       body: JSON.stringify({
         ...form,
@@ -149,7 +150,7 @@ export default function Books() {
     setError("");
     setNotice("");
 
-    const result = await apiRequest(`/api/book/${bookId}`, {
+    const result = await apiRequest(`/api/books/${bookId}`, {
       method: "DELETE",
     });
 
@@ -254,6 +255,10 @@ export default function Books() {
                 <input type="text" name="category" value={form.category} onChange={updateForm} />
               </label>
               <label className="field">
+                <span>Location</span>
+                <input type="text" name="location" value={form.location} onChange={updateForm} />
+              </label>
+              <label className="field">
                 <span>Published Year</span>
                 <input
                   type="number"
@@ -289,7 +294,6 @@ export default function Books() {
         ) : books.length === 0 ? (
           <div className="empty-state">
             <h3>No books found</h3>
-            <p>Try removing filters or create the first catalog entry as an ADMIN.</p>
           </div>
         ) : (
           <div className="table-scroll">
@@ -301,7 +305,9 @@ export default function Books() {
                   <th>Title</th>
                   <th>Author</th>
                   <th>Category</th>
+                  <th>Location</th>
                   <th className="quantity-column">Quantity</th>
+                  <th>Status</th>
                   <th className="action-column">Action</th>
                 </tr>
               </thead>
@@ -313,19 +319,27 @@ export default function Books() {
                     <td>{book.title}</td>
                     <td>{book.author}</td>
                     <td>{book.category || "-"}</td>
-                    <td className="quantity-column">{book.availableCopies}</td>
+                    <td>{book.location || "-"}</td>
+                    <td className="quantity-column">{book.totalCopies}</td>
+                    <td>
+                      <span className={`status-chip ${book.isDeleted ? "status-deleted" : `status-${book.status.toLowerCase()}`}`}>
+                        {book.isDeleted ? "DELETED" : book.status}
+                      </span>
+                    </td>
                     <td className="action-column">
                       <div className="table-actions">
                         {user.role === "ADMIN" ? (
                           <>
-                            <button
-                              type="button"
-                              className="icon-button delete-button"
-                              disabled={deleteId === book.id}
-                              onClick={() => deleteBook(book.id)}
-                            >
-                              {deleteId === book.id ? "..." : "Del"}
-                            </button>
+                            {!book.isDeleted ? (
+                              <button
+                                type="button"
+                                className="icon-button delete-button"
+                                disabled={deleteId === book.id}
+                                onClick={() => deleteBook(book.id)}
+                              >
+                                {deleteId === book.id ? "..." : "Del"}
+                              </button>
+                            ) : null}
                             <Link className="icon-button edit-button" to={`/books/${book.id}`}>
                               Edit
                             </Link>
@@ -335,7 +349,7 @@ export default function Books() {
                             <Link className="icon-button edit-button" to={`/books/${book.id}`}>
                               View
                             </Link>
-                            {book.availableCopies > 0 ? (
+                            {!book.isDeleted ? (
                               <Link className="icon-button action-button" to={`/borrow?bookId=${book.id}`}>
                                 Borrow
                               </Link>

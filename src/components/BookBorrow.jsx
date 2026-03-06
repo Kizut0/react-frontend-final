@@ -15,6 +15,12 @@ function formatDate(value) {
   return dateFormatter.format(new Date(value));
 }
 
+function getDefaultTargetDate() {
+  const nextDate = new Date();
+  nextDate.setDate(nextDate.getDate() + 1);
+  return nextDate.toISOString().slice(0, 10);
+}
+
 function getBorrowerLabel(borrow) {
   const firstname = borrow.user?.firstname?.trim();
   const lastname = borrow.user?.lastname?.trim();
@@ -28,7 +34,7 @@ async function requestBorrows() {
 }
 
 async function requestBook(bookId) {
-  return apiRequest(`/api/book/${bookId}`);
+  return apiRequest(`/api/books/${bookId}`);
 }
 
 export default function BookBorrow() {
@@ -36,8 +42,10 @@ export default function BookBorrow() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [borrows, setBorrows] = useState([]);
   const [selectedBook, setSelectedBook] = useState(null);
+  const [targetDate, setTargetDate] = useState(getDefaultTargetDate);
   const [isLoading, setIsLoading] = useState(true);
-  const [isBorrowing, setIsBorrowing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeAction, setActiveAction] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [selectionError, setSelectionError] = useState("");
@@ -65,9 +73,6 @@ export default function BookBorrow() {
     let isMounted = true;
 
     async function initialLoad() {
-      setIsLoading(true);
-      setError("");
-
       const result = await requestBorrows();
 
       if (!isMounted) {
@@ -118,6 +123,7 @@ export default function BookBorrow() {
 
       setSelectionError("");
       setSelectedBook(result.data.book);
+      setTargetDate(getDefaultTargetDate());
     }
 
     void refreshSelectedBook();
@@ -127,50 +133,72 @@ export default function BookBorrow() {
     };
   }, [bookId]);
 
-  async function borrowSelectedBook() {
+  async function createBorrowRequest() {
     if (!bookId) {
       return;
     }
 
-    setIsBorrowing(true);
+    setIsSubmitting(true);
     setError("");
     setNotice("");
 
     const result = await apiRequest("/api/borrow", {
       method: "POST",
-      body: JSON.stringify({ bookId }),
+      body: JSON.stringify({ bookId, targetDate }),
     });
 
     if (!result.ok) {
-      setError(result.data?.message ?? "Unable to borrow this book");
-      setIsBorrowing(false);
+      setError(result.data?.message ?? "Unable to create borrow request");
+      setIsSubmitting(false);
       return;
     }
 
     setNotice("Borrow request created successfully.");
     setSearchParams({});
-    setIsBorrowing(false);
+    setIsSubmitting(false);
+    await loadBorrows();
+  }
+
+  async function updateRequestStatus(borrowId, status) {
+    const actionKey = `${borrowId}:${status}`;
+    setActiveAction(actionKey);
+    setError("");
+    setNotice("");
+
+    const result = await apiRequest("/api/borrow", {
+      method: "PATCH",
+      body: JSON.stringify({ borrowId, status }),
+    });
+
+    if (!result.ok) {
+      setError(result.data?.message ?? "Unable to update request");
+      setActiveAction("");
+      return;
+    }
+
+    setNotice(`Request updated to ${result.data?.borrow?.status ?? status}.`);
+    setActiveAction("");
     await loadBorrows();
   }
 
   return (
     <div className="page-shell">
       <section className="panel hero-panel">
-        <p className="eyebrow">Borrow records</p>
-        <h2>{user.role === "ADMIN" ? "All borrow activity" : "Your borrow history"}</h2>
+        <p className="eyebrow">Borrow requests</p>
+        <h2>{user.role === "ADMIN" ? "Manage all book requests" : "Create and track your requests"}</h2>
         <p className="lede">
           {user.role === "ADMIN"
-            ? "Inspect every borrow in the system and track availability pressure across the catalog."
-            : "Review your active and completed borrow records. You can also confirm a selected book borrow here."}
+            ? "Review pending requests, accept them when stock is available, or cancel them when needed."
+            : "Choose a target pickup date, submit a request, and monitor every request status from one page."}
         </p>
       </section>
 
-      {user.role !== "ADMIN" && (selectedBook || selectionError) ? (
+      {user.role === "USER" && (selectedBook || selectionError) ? (
         <section className="panel">
           <div className="section-heading">
             <div>
               <p className="eyebrow">Selected book</p>
-              <h3>Borrow confirmation</h3>
+              <h3>Create borrow request</h3>
             </div>
           </div>
 
@@ -182,15 +210,21 @@ export default function BookBorrow() {
                 {selectedBook.title} by {selectedBook.author}
               </p>
               <p className="support-copy">
-                Available copies: {selectedBook.availableCopies} of {selectedBook.totalCopies}
+                Location: {selectedBook.location || "-"} | Available copies: {selectedBook.availableCopies} of{" "}
+                {selectedBook.totalCopies}
               </p>
+              <label className="field compact-field">
+                <span>Target Date</span>
+                <input
+                  type="date"
+                  value={targetDate}
+                  min={new Date().toISOString().slice(0, 10)}
+                  onChange={(event) => setTargetDate(event.target.value)}
+                />
+              </label>
               <div className="inline-actions">
-                <button
-                  type="button"
-                  onClick={borrowSelectedBook}
-                  disabled={isBorrowing || selectedBook.availableCopies <= 0}
-                >
-                  {isBorrowing ? "Borrowing..." : "Confirm Borrow"}
+                <button type="button" onClick={createBorrowRequest} disabled={isSubmitting}>
+                  {isSubmitting ? "Submitting..." : "Create Request"}
                 </button>
                 <button
                   type="button"
@@ -212,7 +246,7 @@ export default function BookBorrow() {
         <div className="section-heading">
           <div>
             <p className="eyebrow">History</p>
-            <h3>Borrow list</h3>
+            <h3>{user.role === "ADMIN" ? "Request list" : "Your request list"}</h3>
           </div>
           <Link className="button secondary-button" to="/books">
             Back to books
@@ -221,12 +255,12 @@ export default function BookBorrow() {
 
         {isLoading ? (
           <div className="empty-state">
-            <h3>Loading borrow records...</h3>
+            <h3>Loading requests...</h3>
           </div>
         ) : borrows.length === 0 ? (
           <div className="empty-state">
-            <h3>No borrow records yet</h3>
-            <p>Select a book from the catalog to create the first borrow request.</p>
+            <h3>No requests yet</h3>
+            <p>Select a book from the catalog to create the first request.</p>
           </div>
         ) : (
           <div className="table-scroll">
@@ -235,30 +269,78 @@ export default function BookBorrow() {
                 <tr>
                   <th>Book</th>
                   {user.role === "ADMIN" ? <th>Borrower</th> : null}
-                  <th>Borrowed</th>
-                  <th>Due</th>
+                  <th>Created</th>
+                  <th>Target Date</th>
                   <th>Status</th>
+                  <th className="action-column">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {borrows.map((borrow) => (
-                  <tr key={borrow.id}>
-                    <td>
-                      <div className="table-primary">
-                        <strong>{borrow.book?.title ?? "Unknown book"}</strong>
-                        <span>{borrow.book?.author ?? "-"}</span>
-                      </div>
-                    </td>
-                    {user.role === "ADMIN" ? <td>{getBorrowerLabel(borrow)}</td> : null}
-                    <td>{formatDate(borrow.borrowDate)}</td>
-                    <td>{formatDate(borrow.dueDate)}</td>
-                    <td>
-                      <span className={`status-chip status-${borrow.status.toLowerCase()}`}>
-                        {borrow.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {borrows.map((borrow) => {
+                  const canAdminAccept =
+                    user.role === "ADMIN" &&
+                    ["INIT", "CLOSE-NO-AVAILABLE-BOOK"].includes(borrow.status);
+                  const canAdminCancel =
+                    user.role === "ADMIN" &&
+                    ["INIT", "CLOSE-NO-AVAILABLE-BOOK", "ACCEPTED", "BORROWED"].includes(borrow.status);
+                  const canUserCancel = user.role === "USER" && borrow.status === "INIT";
+
+                  return (
+                    <tr key={borrow.id}>
+                      <td>
+                        <div className="table-primary">
+                          <strong>{borrow.book?.title ?? "Unknown book"}</strong>
+                          <span>{borrow.book?.author ?? "-"}</span>
+                        </div>
+                      </td>
+                      {user.role === "ADMIN" ? <td>{getBorrowerLabel(borrow)}</td> : null}
+                      <td>{formatDate(borrow.createdAt)}</td>
+                      <td>{formatDate(borrow.targetDate)}</td>
+                      <td>
+                        <span className={`status-chip status-${borrow.status.toLowerCase()}`}>
+                          {borrow.status}
+                        </span>
+                      </td>
+                      <td className="action-column">
+                        <div className="table-actions">
+                          {canAdminAccept ? (
+                            <button
+                              type="button"
+                              className="icon-button action-button"
+                              disabled={activeAction === `${borrow.id}:ACCEPTED`}
+                              onClick={() => updateRequestStatus(borrow.id, "ACCEPTED")}
+                            >
+                              {activeAction === `${borrow.id}:ACCEPTED` ? "..." : "Accept"}
+                            </button>
+                          ) : null}
+                          {canAdminCancel ? (
+                            <button
+                              type="button"
+                              className="icon-button delete-button"
+                              disabled={activeAction === `${borrow.id}:CANCEL-ADMIN`}
+                              onClick={() => updateRequestStatus(borrow.id, "CANCEL-ADMIN")}
+                            >
+                              {activeAction === `${borrow.id}:CANCEL-ADMIN` ? "..." : "Cancel"}
+                            </button>
+                          ) : null}
+                          {canUserCancel ? (
+                            <button
+                              type="button"
+                              className="icon-button delete-button"
+                              disabled={activeAction === `${borrow.id}:CANCEL-USER`}
+                              onClick={() => updateRequestStatus(borrow.id, "CANCEL-USER")}
+                            >
+                              {activeAction === `${borrow.id}:CANCEL-USER` ? "..." : "Cancel"}
+                            </button>
+                          ) : null}
+                          {!canAdminAccept && !canAdminCancel && !canUserCancel ? (
+                            <span className="support-copy">No action</span>
+                          ) : null}
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
