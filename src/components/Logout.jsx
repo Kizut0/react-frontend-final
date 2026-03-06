@@ -1,28 +1,30 @@
-//You can modify this component.
-
-import { useEffect, useState } from "react";
-import { useUser } from "../contexts/UserProvider";
+import { useEffect, useEffectEvent, useState } from "react";
 import { Navigate } from "react-router-dom";
-import Login from "./Login";
+import { useUser } from "../contexts/useUser";
 
 export default function Logout() {
-
-  const [isLoading, setIsLoading] = useState(true);
+  const [isDone, setIsDone] = useState(false);
   const { logout } = useUser();
 
-  async function onLogout() {
+  const runLogout = useEffectEvent(async () => {
     await logout();
-    setIsLoading(false);
+    setIsDone(true);
+  });
+
+  useEffect(() => {
+    void runLogout();
+  }, []);
+
+  if (!isDone) {
+    return (
+      <div className="page-shell">
+        <section className="panel loading-panel">
+          <p className="eyebrow">Session</p>
+          <h2>Logging out...</h2>
+        </section>
+      </div>
+    );
   }
 
-  useEffect(()=>{
-    onLogout();
-  },[]);
-
-  if (isLoading) {
-    return (<><h3>Loging out...</h3></>);
-  }
-  else {
-    return (<Navigate to={<Login/>} replace/>)
-  }
+  return <Navigate to="/login" replace />;
 }
