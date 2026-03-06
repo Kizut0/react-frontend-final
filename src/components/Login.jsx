@@ -69,7 +69,7 @@ export default function Login() {
     <div className="page-shell auth-shell">
       <section className="panel auth-card">
         <h2 className="page-title">{requestedMode === "login" ? "Login" : "Create Account"}</h2>
-        <p className="section-copy">
+        <p className="section-copy auth-copy">
           {requestedMode === "login"
             ? "Sign in to manage books and borrow records."
             : "Only admin@test.com and admin@gmail.com will register as ADMIN. All other emails become USER accounts."}
@@ -92,7 +92,7 @@ export default function Login() {
           </button>
         </div>
 
-        <form className="form-grid" onSubmit={onSubmit}>
+        <form className="form-grid auth-form" onSubmit={onSubmit}>
           {requestedMode === "register" && (
             <>
               <label className="field">
@@ -155,7 +155,7 @@ export default function Login() {
 
           {error ? <p className="form-error">{error}</p> : null}
 
-          <button type="submit" disabled={isSubmitting}>
+          <button type="submit" className="form-submit" disabled={isSubmitting}>
             {isSubmitting
               ? requestedMode === "login"
                 ? "Signing in..."
@@ -165,10 +165,6 @@ export default function Login() {
                 : "Create Account"}
           </button>
         </form>
-
-        <p className="support-copy">
-          The backend uses the HTTP-only cookie as the real session authority.
-        </p>
       </section>
     </div>
   );

@@ -96,7 +96,7 @@
 }
 
 .auth-shell {
-  max-width: 720px;
+  max-width: 640px;
   margin: 0 auto;
   grid-template-columns: minmax(0, 1fr);
 }
@@ -242,13 +242,17 @@
 }
 
 .auth-toggle {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
-  margin: 18px 0 20px;
+  margin: 20px 0 22px;
 }
 
 .toggle-button {
-  min-width: 132px;
+  min-width: 148px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-radius: 8px;
   background: #ffffff;
   color: var(--text);
   border-color: var(--border);
@@ -509,6 +513,8 @@
 
 .form-error {
   color: #b91c1c;
+  font-size: 0.95rem;
+  line-height: 1.45;
 }
 
 .form-success {
@@ -520,7 +526,8 @@
 }
 
 .auth-card .form-grid {
-  margin-top: 8px;
+  gap: 16px;
+  margin-top: 0;
 }
 
 .auth-card .field {
@@ -528,11 +535,47 @@
 }
 
 .auth-card .field input {
-  min-height: 46px;
+  min-height: 48px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #ffffff;
 }
 
-.auth-card > .support-copy {
-  margin-top: 12px;
+.auth-card {
+  max-width: 100%;
+  padding: 30px 32px;
+}
+
+.auth-card .page-title {
+  margin-bottom: 0;
+}
+
+.auth-copy {
+  max-width: 44ch;
+  margin-top: 10px;
+  margin-bottom: 0;
+  line-height: 1.55;
+}
+
+.auth-form {
+  width: 100%;
+}
+
+.auth-form .field span {
+  font-size: 0.9rem;
+  letter-spacing: 0.01em;
+}
+
+.form-submit {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 4px;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.auth-card .form-error {
+  margin-top: -2px;
 }
 
 @media (max-width: 900px) {
@@ -581,5 +624,13 @@
   .auth-toggle {
     display: grid;
     grid-template-columns: 1fr 1fr;
+  }
+
+  .auth-card {
+    padding: 24px 20px;
+  }
+
+  .toggle-button {
+    min-width: 0;
   }
 }
