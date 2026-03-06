@@ -79,9 +79,8 @@
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   justify-content: flex-end;
-  flex-wrap: nowrap;
 }
 
 .main-content {
@@ -93,6 +92,7 @@
 .page-shell {
   display: grid;
   gap: 16px;
+  width: 100%;
 }
 
 .auth-shell {
@@ -107,10 +107,16 @@
   border-radius: 14px;
   background: var(--surface);
   box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04);
+  width: 100%;
 }
 
 .hero-panel {
   background: var(--surface);
+}
+
+.detail-panel {
+  display: grid;
+  gap: 18px;
 }
 
 .auth-hero {
@@ -212,6 +218,10 @@
   gap: 14px;
 }
 
+.form-actions {
+  grid-column: 1 / -1;
+}
+
 .two-column-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
@@ -268,6 +278,18 @@
   margin-bottom: 10px;
 }
 
+.book-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.book-card-top h2,
+.book-card-top h3 {
+  margin: 0;
+}
+
 .collection-form {
   margin: 16px 0 22px;
   padding: 18px;
@@ -310,7 +332,8 @@
 }
 
 .status-borrowed,
-.role-member {
+.role-member,
+.role-user {
   color: #92400e;
   background: #fef3c7;
   border-color: #fde68a;
@@ -348,7 +371,7 @@
 .data-table td {
   padding: 14px 12px;
   text-align: left;
-  vertical-align: top;
+  vertical-align: middle;
   border-bottom: 1px solid #e5e7eb;
 }
 
@@ -359,21 +382,66 @@
   background: #f8fafc;
 }
 
+.action-column {
+  width: 148px;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.quantity-column {
+  width: 96px;
+  white-space: nowrap;
+  text-align: center;
+}
+
 .table-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  align-items: center;
   gap: 8px;
+  justify-content: center;
 }
 
 .icon-button {
-  min-width: 58px;
-  min-height: 36px;
-  padding: 0 12px;
+  min-width: 54px;
+  min-height: 34px;
+  padding: 0 10px;
   border-radius: 6px;
   border: none;
   color: #ffffff;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 700;
+}
+
+.table-primary {
+  display: grid;
+  gap: 4px;
+}
+
+.table-primary strong {
+  color: var(--text);
+  font-size: 0.95rem;
+  line-height: 1.3;
+}
+
+.table-primary span {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.books-table th:nth-child(3),
+.books-table td:nth-child(3) {
+  min-width: 260px;
+}
+
+.books-table th:nth-child(4),
+.books-table td:nth-child(4) {
+  min-width: 180px;
+}
+
+.books-table th:nth-child(5),
+.books-table td:nth-child(5) {
+  min-width: 150px;
 }
 
 .delete-button {
@@ -413,10 +481,6 @@
   background: #ffffff;
   color: var(--primary);
   border: 1px solid var(--primary);
-}
-
-.header-button:hover {
-  opacity: 0.94;
 }
 
 .header-button.active {

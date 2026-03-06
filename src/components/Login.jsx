@@ -72,7 +72,7 @@ export default function Login() {
         <p className="section-copy">
           {requestedMode === "login"
             ? "Sign in to manage books and borrow records."
-            : "Create the first user as ADMIN, then add MEMBER accounts after that."}
+            : "Only admin@test.com and admin@gmail.com will register as ADMIN. All other emails become USER accounts."}
         </p>
 
         <div className="auth-toggle">

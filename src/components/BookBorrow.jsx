@@ -165,7 +165,7 @@ export default function BookBorrow() {
         </p>
       </section>
 
-      {user.role === "MEMBER" && (selectedBook || selectionError) ? (
+      {user.role !== "ADMIN" && (selectedBook || selectionError) ? (
         <section className="panel">
           <div className="section-heading">
             <div>

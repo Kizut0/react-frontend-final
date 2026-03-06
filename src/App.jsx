@@ -1,11 +1,8 @@
 import "./App.css";
 import { Navigate, NavLink, Route, Routes } from "react-router-dom";
-import About from "./components/About";
 import BookBorrow from "./components/BookBorrow";
 import BookDetail from "./components/BookDetail";
 import Books from "./components/Books";
-import Faqs from "./components/Faqs";
-import Home from "./components/Home";
 import Login from "./components/Login";
 import Logout from "./components/Logout";
 import Profile from "./components/Profile";
@@ -23,9 +20,6 @@ function AppShell({ children }) {
         </div>
 
         <nav className="site-nav">
-          <NavLink className={({ isActive }) => `nav-link${isActive ? " active" : ""}`} to="/">
-            Home
-          </NavLink>
           <NavLink className={({ isActive }) => `nav-link${isActive ? " active" : ""}`} to="/books">
             Books
           </NavLink>
@@ -33,19 +27,7 @@ function AppShell({ children }) {
             className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
             to="/borrow"
           >
-            Borrowers
-          </NavLink>
-          <NavLink
-            className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
-            to="/faqs"
-          >
-            FAQs
-          </NavLink>
-          <NavLink
-            className={({ isActive }) => `nav-link${isActive ? " active" : ""}`}
-            to="/about"
-          >
-            About
+            Borrow
           </NavLink>
         </nav>
 
@@ -87,10 +69,8 @@ export default function App() {
   return (
     <AppShell>
       <Routes>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Navigate to="/books" replace />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/faqs" element={<Faqs />} />
-        <Route path="/about" element={<About />} />
         <Route
           path="/logout"
           element={
@@ -131,7 +111,7 @@ export default function App() {
             </RequireAuth>
           }
         />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/books" replace />} />
       </Routes>
     </AppShell>
   );

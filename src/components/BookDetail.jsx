@@ -230,7 +230,7 @@ export default function BookDetail() {
               </select>
             </label>
 
-            <div className="inline-actions">
+            <div className="inline-actions form-actions">
               <button type="submit" disabled={isSaving}>
                 {isSaving ? "Saving..." : "Save Changes"}
               </button>
@@ -258,14 +258,14 @@ export default function BookDetail() {
             <Link className="button secondary-button" to="/books">
               Back to catalog
             </Link>
-            {user.role === "MEMBER" && book.availableCopies > 0 ? (
+            {user.role !== "ADMIN" && book.availableCopies > 0 ? (
               <Link className="button" to={`/borrow?bookId=${book.id}`}>
                 Continue to borrow
               </Link>
             ) : (
               <span className="support-copy">
                 {book.availableCopies > 0
-                  ? "Only MEMBER users can create borrow requests."
+                  ? "Only USER accounts can create borrow requests."
                   : "This book has no copies available right now."}
               </span>
             )}

@@ -273,7 +273,7 @@ export default function Books() {
                   required
                 />
               </label>
-              <div className="inline-actions">
+              <div className="inline-actions form-actions">
                 <button type="submit" disabled={isCreating}>
                   {isCreating ? "Creating..." : "Create Book"}
                 </button>
@@ -301,8 +301,8 @@ export default function Books() {
                   <th>Title</th>
                   <th>Author</th>
                   <th>Category</th>
-                  <th>Quantity</th>
-                  <th>Action</th>
+                  <th className="quantity-column">Quantity</th>
+                  <th className="action-column">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -313,8 +313,8 @@ export default function Books() {
                     <td>{book.title}</td>
                     <td>{book.author}</td>
                     <td>{book.category || "-"}</td>
-                    <td>{book.availableCopies}</td>
-                    <td>
+                    <td className="quantity-column">{book.availableCopies}</td>
+                    <td className="action-column">
                       <div className="table-actions">
                         {user.role === "ADMIN" ? (
                           <>
